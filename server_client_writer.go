@@ -177,7 +177,7 @@ func (c *Client) writePump() {
 			}
 
 			c.lastSendPingTry.SetNow()
-			if err = c.conn.WriteMessage(msg.Ping, nil); _err != nil {
+			if err = c.conn.WriteMessage(msg.Ping, nil); err != nil {
 				// Failed
 				_error().Err(err).Msg("ping ticker -> failed to send ping")
 				c.nrOfFailedSendPings.Inc(1)
