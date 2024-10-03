@@ -1,0 +1,7 @@
+/dist
+tmp/**
+
+# Editor directories and files
+.idea
+.vscode
+.history
