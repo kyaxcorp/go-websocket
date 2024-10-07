@@ -139,22 +139,6 @@ func (c *Client) GetAuthDetails() *authentication.AuthDetails {
 	return c.authDetails
 }
 
-// This generates an unique ID for the Message that will be sent!
-func (c *Client) genPayloadID() string {
-
-	c.randomPayloadID.Inc(1)
-	if c.randomPayloadID.Get() > 65500 {
-		// Reset it!
-		c.randomPayloadID.Set(1)
-	}
-	id := c.randomPayloadID.Get()
-
-	// Prefix "S" as Server + Connection ID + Random payload ID + Nano Time
-	return "s_" + strconv.FormatUint(c.connectionID, 10) + "_" +
-		strconv.Itoa(int(id)) + "_" +
-		strconv.FormatInt(time.Now().UnixNano(), 10)
-}
-
 // Set custom Data to client connection!
 func (c *Client) Set(key string, value interface{}) *Client {
 	//c.customData[key] = value

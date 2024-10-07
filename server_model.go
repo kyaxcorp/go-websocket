@@ -87,9 +87,10 @@ type Server struct {
 
 	// This is GIN Server
 	WSServer *gin.Engine
-	// This is the registrationHub that registers the c...
+	// This is the registrationHub that registers the client...
 	WSRegistrationHub *RegistrationHub
-	// This is the registrationHub which sends broadcast messages!
+	// This is the registrationHub which sends broadcast messages! it's the primary
+	// one which can broadcast to all clients
 	WSBroadcastHub *BroadcastHub
 	// This is the upgrader which transfers from http to WebSocket
 	WSUpgrader websocket.Upgrader

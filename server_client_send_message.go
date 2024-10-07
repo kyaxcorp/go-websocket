@@ -104,55 +104,6 @@ func (c *Client) LiveStreaming() *Client {
 	return c
 }
 
-// WriteTextPayload - We will write any type of Message which will be formatted into a JSON and into a specific structure!
-// This also will receive a response from the client!
-// It's also limited to a specific packet length!
-// It's destined to receive back a response from the Client!
-func (c *Client) WriteTextPayload(textPayload TextPayload) *Client {
-	/*
-		1. Generate a Message ID
-		2. Save the callback on receive!
-		3. Execute callback on receive as a goroutine!
-	*/
-
-	// Converting to bytes
-
-	if textPayload.Message == "" {
-		return c
-	}
-
-	// Generate payload id
-	payloadId := c.genPayloadID()
-
-	// Create the payload
-	payload := TextPayloadStr{
-		PayloadID: payloadId,
-		SentTime:  time.Now(),
-		Data:      textPayload.Message,
-	}
-
-	encoded, err := msg.JsonToBytes(payload)
-	if err != nil {
-		if textPayload.OnJsonError != nil {
-			textPayload.OnJsonError(err, payload)
-		}
-		return c
-	}
-
-	c.payloadMessageCallbackLock.Lock()
-	// Saving the callback!
-	c.payloadMessageCallbacks[payloadId] = textPayload.OnFinish
-	c.payloadMessageCallbackLock.Unlock()
-
-	// Sending the data!
-	c.send <- encoded
-
-	return c
-}
-
-func (c *Client) SendTextPayload(textPayload TextPayload) *Client {
-	return c.SendTextPayload(textPayload)
-}
 
 // WriteText - It sends clear Text to the client! without any encoding!
 func (c *Client) WriteText(message string) SendStatus {
@@ -195,6 +146,8 @@ func (c *Client) WriteBinary(message []byte) SendStatus {
 func (c *Client) SendBinary(message []byte) SendStatus {
 	return c.WriteBinary(message)
 }
+
+// ===============================================================
 
 // BroadcastText - It sends clear Text to the c! without any encoding!
 func (c *Client) BroadcastText(message string) *Client {

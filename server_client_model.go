@@ -11,7 +11,6 @@ import (
 	"github.com/kyaxcorp/go-helper/sync/_bool"
 	"github.com/kyaxcorp/go-helper/sync/_map_string_interface"
 	"github.com/kyaxcorp/go-helper/sync/_time"
-	"github.com/kyaxcorp/go-helper/sync/_uint16"
 	"github.com/kyaxcorp/go-helper/sync/_uint64"
 	"github.com/kyaxcorp/go-http/middlewares/authentication"
 	"github.com/kyaxcorp/go-http/middlewares/connection"
@@ -65,8 +64,10 @@ type Client struct {
 	// This is the server itself as a relation!
 	server *Server
 
+	// registrationHub - reference to the hub which registered this connection
 	registrationHub *RegistrationHub
-	broadcastHub    *BroadcastHub
+	// broadcastHub - reference to the main broadcast hub
+	broadcastHub *BroadcastHub
 
 	// The websocket connection.
 	conn *websocket.Conn
@@ -98,12 +99,6 @@ type Client struct {
 	nrOfSentMessages        *_uint64.Uint64
 	nrOfSentFailedMessages  *_uint64.Uint64
 	nrOfSentSuccessMessages *_uint64.Uint64
-
-	// Here we store on response callbacks!
-	payloadMessageCallbacks    map[string]TextPayloadOnResponse
-	payloadMessageCallbackLock sync.Mutex
-
-	randomPayloadID *_uint16.Uint16
 
 	// This is Custom data array which can be accessed with Get/Set Methods
 	//customData map[string]interface{}
