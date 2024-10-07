@@ -62,6 +62,7 @@ func (c *Client) writePump() {
 
 			if err != nil {
 				_error().Err(err).Msg("set write deadline")
+				// TODO: should we do anything here?
 			}
 
 			if !ok {
@@ -87,6 +88,8 @@ func (c *Client) writePump() {
 				if err != nil {
 					_error().Err(err).Msg("failed to send close code")
 				}
+
+				c.sendStatus <- SendStatus{Err: err}
 				return
 			}
 
@@ -113,6 +116,7 @@ func (c *Client) writePump() {
 					msg.Close,
 					websocket.FormatCloseMessage(closeCode, closeMsg),
 				); err != nil {
+					c.sendStatus <- SendStatus{Err: err}
 					return
 				}
 				info().Msg("continuing...")
@@ -121,6 +125,7 @@ func (c *Client) writePump() {
 
 			if err != nil {
 				warn().Msg("incorrect message type")
+				c.sendStatus <- SendStatus{Err: err}
 				return
 			}
 
@@ -130,6 +135,7 @@ func (c *Client) writePump() {
 			// Choose a Writer by type! (we have defined that first byte is the Message Type!)
 			w, err = c.conn.NextWriter(messageType)
 			if err != nil {
+				c.sendStatus <- SendStatus{Err: err}
 				return
 			}
 			// log.Println("Writing the Message")
@@ -144,16 +150,19 @@ func (c *Client) writePump() {
 				_error().Err(err).Msg("failed write bytes")
 				// Count
 				c.nrOfSentFailedMessages.Inc(1)
+				c.sendStatus <- SendStatus{Err: err}
 				// Even if we failed to write... we should close the writer!
 				//return
 			} else {
 				// Count
 				c.nrOfSentSuccessMessages.Inc(1)
+				c.sendStatus <- SendStatus{Err: nil}
 			}
 
 			// Closing the writer
 			if err = w.Close(); err != nil {
 				_error().Err(err).Msg("failed to close the writer")
+				c.sendStatus <- SendStatus{Err: err}
 				return
 			}
 		case <-c.pingTicker.C:

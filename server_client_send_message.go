@@ -179,21 +179,20 @@ func (c *Client) WriteJSON(message interface{}) SendStatus {
 	return sendStatus
 }
 
-func (c *Client) SendJSON(message interface{}, onJsonError OnJsonError) *Client {
-	return c.WriteJSON(message, onJsonError)
+func (c *Client) SendJSON(message interface{}, onJsonError OnJsonError) SendStatus {
+	return c.WriteJSON(message)
 }
 
 // WriteBinary - It sends clear bytes to the client
-func (c *Client) WriteBinary(message []byte) *Client {
+func (c *Client) WriteBinary(message []byte) SendStatus {
 	if len(message) == 0 {
-		return c
+		return SendStatus{Err: errors.New("message length is 0")}
 	}
-	go func() {
-		c.send <- msg.ToBinary(message)
-	}()
-	return c
+	c.send <- msg.ToBinary(message)
+	sendStatus := <-c.sendStatus
+	return sendStatus
 }
-func (c *Client) SendBinary(message []byte) *Client {
+func (c *Client) SendBinary(message []byte) SendStatus {
 	return c.WriteBinary(message)
 }
 
