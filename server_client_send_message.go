@@ -104,7 +104,6 @@ func (c *Client) LiveStreaming() *Client {
 	return c
 }
 
-
 // WriteText - It sends clear Text to the client! without any encoding!
 func (c *Client) WriteText(message string) SendStatus {
 	if message == "" {
@@ -150,38 +149,29 @@ func (c *Client) SendBinary(message []byte) SendStatus {
 // ===============================================================
 
 // BroadcastText - It sends clear Text to the c! without any encoding!
-func (c *Client) BroadcastText(message string) *Client {
+func (c *Client) BroadcastText(message string) (map[*Client]SendStatus, error) {
 	if message == "" {
-		return c
+		return nil, errors.New("message empty")
 	}
-	go func() {
-		c.broadcastHub.broadcast <- msg.TextToBytes(message)
-	}()
-	return c
+	c.broadcastHub.broadcast <- msg.TextToBytes(message)
+	return <-c.broadcastHub.broadcastStatus, nil
 }
 
 // BroadcastJSON - It sends Any structure to the c encoded as JSON!
-func (c *Client) BroadcastJSON(message interface{}, onJsonError OnJsonError) *Client {
-	go func() {
-		encoded, err := msg.JsonToBytes(message)
-		if err != nil {
-			if onJsonError != nil {
-				onJsonError(err, message)
-			}
-			return
-		}
-		c.broadcastHub.broadcast <- encoded
-	}()
-	return c
+func (c *Client) BroadcastJSON(message interface{}) (map[*Client]SendStatus, error) {
+	encoded, err := msg.JsonToBytes(message)
+	if err != nil {
+		return nil, err
+	}
+	c.broadcastHub.broadcast <- encoded
+	return <-c.broadcastHub.broadcastStatus, nil
 }
 
 // BroadcastBinary -> It sends clear bytes to the c
-func (c *Client) BroadcastBinary(message []byte) *Client {
+func (c *Client) BroadcastBinary(message []byte) (map[*Client]SendStatus, error) {
 	if len(message) == 0 {
-		return c
+		return nil, errors.New("message empty")
 	}
-	go func() {
-		c.broadcastHub.broadcast <- msg.ToBinary(message)
-	}()
-	return c
+	c.broadcastHub.broadcast <- msg.ToBinary(message)
+	return <-c.broadcastHub.broadcastStatus, nil
 }
