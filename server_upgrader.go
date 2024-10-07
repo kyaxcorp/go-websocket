@@ -200,7 +200,8 @@ func (s *Server) UpgradeToWS(
 		closeMessage: DefaultCloseReason,
 
 		//send: make(chan []byte, maxMessageSize),
-		send: make(chan []byte),
+		send:       make(chan []byte),
+		sendStatus: make(chan SendStatus),
 		// Custom Data Array create!
 		//customData: make(map[string]interface{}),
 		customData: _map_string_interface.New(),

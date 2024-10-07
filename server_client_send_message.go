@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"errors"
 	"time"
 
 	"github.com/kyaxcorp/go-websocket/msg"
@@ -154,34 +155,30 @@ func (c *Client) SendTextPayload(textPayload TextPayload) *Client {
 }
 
 // WriteText - It sends clear Text to the client! without any encoding!
-func (c *Client) WriteText(message string) *Client {
+func (c *Client) WriteText(message string) SendStatus {
 	if message == "" {
-		return c
+		return SendStatus{Err: errors.New("message empty")}
 	}
-	go func() {
-		c.send <- msg.TextToBytes(message)
-	}()
-	return c
+	c.send <- msg.TextToBytes(message)
+	sendStatus := <-c.sendStatus
+	return sendStatus
 }
 
-func (c *Client) SendText(message string) *Client {
+func (c *Client) SendText(message string) SendStatus {
 	return c.WriteText(message)
 }
 
 // WriteJSON - It sends Any structure to the client encoded as JSON!
-func (c *Client) WriteJSON(message interface{}, onJsonError OnJsonError) *Client {
-	go func() {
-		encoded, err := msg.JsonToBytes(message)
-		if err != nil {
-			if onJsonError != nil {
-				onJsonError(err, message)
-			}
-			return
-		}
-		c.send <- encoded
-	}()
-	return c
+func (c *Client) WriteJSON(message interface{}) SendStatus {
+	encoded, err := msg.JsonToBytes(message)
+	if err != nil {
+		return SendStatus{Err: err}
+	}
+	c.send <- encoded
+	sendStatus := <-c.sendStatus
+	return sendStatus
 }
+
 func (c *Client) SendJSON(message interface{}, onJsonError OnJsonError) *Client {
 	return c.WriteJSON(message, onJsonError)
 }

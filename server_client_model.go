@@ -75,6 +75,9 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+	// TODO: should we use only sendStatus as response only a specialized Struct which also will contain the response and other metadata
+	// sendStatus chan error
+	sendStatus chan SendStatus
 
 	// This is the channel where the WritePump
 	closeWritePump chan bool
@@ -105,6 +108,10 @@ type Client struct {
 	// This is Custom data array which can be accessed with Get/Set Methods
 	//customData map[string]interface{}
 	customData *_map_string_interface.MapStringInterface
+}
+
+type SendStatus struct {
+	Err error
 }
 
 // Here we store reverse map of the connections!
