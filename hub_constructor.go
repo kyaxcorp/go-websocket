@@ -21,8 +21,10 @@ func newHub(WSServer *Server) *Hub {
 		c: NewClientsInstance(),
 		// Create the data channel!
 		broadcast: make(chan []byte),
+		broadcastStatus: make(chan map[*Client]SendStatus),
 		// Create (to) the Sending data Channel
 		broadcastTo: make(chan hubBroadcastTo),
+		broadcastToStatus: make(chan map[*Client]SendStatus),
 		// Create the stop call channel
 		//stopBroadcaster: make(chan bool),
 		//stopGetter:      make(chan bool),

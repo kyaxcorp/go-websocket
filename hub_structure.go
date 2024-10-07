@@ -25,9 +25,11 @@ type Hub struct {
 	createdAt *_time.Time
 
 	// This is the channel where we receive the data for broadcast!
-	broadcast chan []byte
+	broadcast       chan []byte
+	broadcastStatus chan map[*Client]SendStatus
 	// This is the channel which handles specific c!
-	broadcastTo chan hubBroadcastTo
+	broadcastTo       chan hubBroadcastTo
+	broadcastToStatus chan map[*Client]SendStatus
 	// This is the command to stop the broadcaster which sends the data!
 	//stopBroadcaster chan bool
 	// This is the command to stop the getter

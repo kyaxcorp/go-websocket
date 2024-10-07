@@ -98,39 +98,42 @@ func (h *Hub) run() {
 
 			// On Broadcast (Messages to all c)
 
-			go func() {
-				nrOfClients := h.c.GetNrOfClients()
-				if nrOfClients == 0 {
-					return
-				}
+			nrOfClients := h.c.GetNrOfClients()
+			if nrOfClients == 0 {
+				return
+			}
 
-				nrOfRoutines := getNrOfRoutines(uint64(nrOfClients))
-				clients := h.c.GetClientsInChunks(nrOfRoutines)
+			nrOfRoutines := getNrOfRoutines(uint64(nrOfClients))
+			clients := h.c.GetClientsInChunks(nrOfRoutines)
 
-				// Split in multiple routines if there are many ClientsStatus
+			// Split in multiple routines if there are many ClientsStatus
 
-				if clients == nil {
-					return
-				}
+			if clients == nil {
+				return
+			}
 
-				for _, clientsChunk := range clients {
-					go func(c map[*Client]bool) {
-						for client := range c {
-							if h.StopCalled.Get() {
-								break
-							}
-
-							// TODO: before sending we should check if this client is not disconnected
-							// Or unregistered somehow .... because when starting the loop.. it can take some time to send the information
-							// to the c!
-
-							if client != nil && !client.isClosed.Get() {
-								client.send <- message
-							}
+			// TODO: await for response
+			// TODO: collect status
+			for _, clientsChunk := range clients {
+				go func(c map[*Client]bool) {
+					for client := range c {
+						if h.StopCalled.Get() {
+							break
 						}
-					}(clientsChunk)
-				}
-			}()
+
+						// TODO: before sending we should check if this client is not disconnected
+						// Or unregistered somehow .... because when starting the loop.. it can take some time to send the information
+						// to the c!
+
+						if client != nil && !client.isClosed.Get() {
+							client.send <- message
+						}
+					}
+				}(clientsChunk)
+			}
+			// TODO:clients respond back!
+
+			
 		case broadcastTo := <-h.broadcastTo:
 
 			// For faster broadcasting maybe we should goroutine here... because looping through ClientsStatus takes some time...!
