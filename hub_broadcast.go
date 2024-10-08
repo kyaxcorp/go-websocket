@@ -156,35 +156,33 @@ func (h *Hub) run() {
 			// here usually we will not need it because the map it's being created else where and it's not used
 			// by multiple goroutines!
 
-			go func() {
-				nrOfClients := len(broadcastTo.to)
-				if nrOfClients == 0 {
-					return
-				}
-				nrOfRoutines := getNrOfRoutines(uint64(nrOfClients))
-				clients := GetClientsInChunksWithConn(broadcastTo.to, nrOfRoutines)
-				if clients == nil {
-					return
-				}
+			nrOfClients := len(broadcastTo.to)
+			if nrOfClients == 0 {
+				return
+			}
+			nrOfRoutines := getNrOfRoutines(uint64(nrOfClients))
+			clients := GetClientsInChunksWithConn(broadcastTo.to, nrOfRoutines)
+			if clients == nil {
+				return
+			}
 
-				for _, clientsChunk := range clients {
-					go func(c map[uint64]*Client) {
-						for _, client := range c {
-							if h.StopCalled.Get() {
-								break
-							}
-
-							// TODO: before sending we should check if this client is not disconnected
-							// Or unregistered somehow .... because when starting the loop.. it can take some time to send the information
-							// to the c!
-
-							if client != nil && !client.isClosed.Get() {
-								client.send <- broadcastTo.data
-							}
+			for _, clientsChunk := range clients {
+				go func(c map[uint64]*Client) {
+					for _, client := range c {
+						if h.StopCalled.Get() {
+							break
 						}
-					}(clientsChunk)
-				}
-			}()
+
+						// TODO: before sending we should check if this client is not disconnected
+						// Or unregistered somehow .... because when starting the loop.. it can take some time to send the information
+						// to the c!
+
+						if client != nil && !client.isClosed.Get() {
+							client.send <- broadcastTo.data
+						}
+					}
+				}(clientsChunk)
+			}
 		}
 	}
 }

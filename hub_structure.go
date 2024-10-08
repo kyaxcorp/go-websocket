@@ -24,6 +24,9 @@ type Hub struct {
 	// Created time (when the hub) has being created
 	createdAt *_time.Time
 
+	// TODO: ar fi bine ca broadcast si broadcastTo sa fie structuri cu chan si buffer
+	// si in aceste structuri noi sa avem deodata send-ul si canalul de receive, ca raspunsul sa vina automat la functia care a apelat
+	// in asa fel vom avea mai multe goroutine care vor transmite date concomitent
 	// This is the channel where we receive the data for broadcast!
 	broadcast       chan []byte
 	broadcastStatus chan map[*Client]SendStatus
