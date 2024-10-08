@@ -1,5 +1,7 @@
 package websocket
 
+import "sync"
+
 /*const SplitAfter = 10
 const MaxSplitting = 50
 const SplitForPercentageLoad = 25 // 25 percentage*/
@@ -112,10 +114,16 @@ func (h *Hub) run() {
 				return
 			}
 
+			sendStatus := make(map[*Client]SendStatus)
+			var mapLock sync.Mutex
+
+			var wg sync.WaitGroup
+			wg.Add(int(nrOfRoutines))
 			// TODO: await for response
 			// TODO: collect status
 			for _, clientsChunk := range clients {
 				go func(c map[*Client]bool) {
+					defer wg.Done()
 					for client := range c {
 						if h.StopCalled.Get() {
 							break
@@ -127,13 +135,17 @@ func (h *Hub) run() {
 
 						if client != nil && !client.isClosed.Get() {
 							client.send <- message
+							clientStatus := <-client.sendStatus
+							mapLock.Lock()
+							sendStatus[client] = clientStatus
+							mapLock.Unlock()
 						}
 					}
+
 				}(clientsChunk)
 			}
-			// TODO:clients respond back!
-
-			
+			wg.Wait()
+			h.broadcastStatus <- sendStatus
 		case broadcastTo := <-h.broadcastTo:
 
 			// For faster broadcasting maybe we should goroutine here... because looping through ClientsStatus takes some time...!
